@@ -1,0 +1,61 @@
+.homepage-logo {
+	display: block;
+    width: 25%;
+    height: 25%;
+    margin-right: auto;
+    margin-left: auto;
+	height: 200px;
+}
+
+.header-text {
+	text-align: center;
+}
+
+.in-paragraph-logo {
+	width: 50%;
+	margin-left: 0;
+	display: block;
+}
+/*
+.in-paragraph-logo-right {
+	width: 50%;
+	display: block;
+	flex: 1;
+}*/
+
+.mediumlogo {
+	transform: scale(0.5);
+}
+
+.githublogo {
+	transform: scale(0.5);
+
+}
+
+.title-paragraph {
+	text-align: center;
+}
+
+.content-paragraph {
+	display: flex;
+	height: 300px;
+	padding-left: 20px;
+	padding-right: 20px;
+	background: #f2f2f2;
+}
+
+.even {
+	background: #d8d8d8;
+}
+
+.paragraph {
+	font-size: 26px;
+	padding-top: 30px;
+}
+
+.breakline {
+	display: inline-block;
+    width: 100%;
+    border-bottom: 1px dashed black;
+    height: 5px;
+}

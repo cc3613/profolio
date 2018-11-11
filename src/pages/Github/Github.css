@@ -1,0 +1,10 @@
+.github-div {
+	height: calc(100vh - 50px);
+	display: flex;
+	position: relative;
+}
+
+.github {
+	width: 100%;
+	height: 100%;
+}

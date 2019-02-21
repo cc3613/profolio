@@ -29,11 +29,11 @@ class Item extends Component {
 
 	handleEquip(e) {
 		this.setState({selected: !this.state.selected});
-		this.handleCallback(this.props.id);
+		this.handleCallback(this.props.id, this.props.attri.buy);
 	}
 
-	handleCallback(itemId) {
-		this.props.selected(itemId);
+	handleCallback(itemId, gold) {
+		this.props.selected(itemId, gold);
 	}
 
 	toTitle = (word) => {
@@ -47,7 +47,7 @@ class Item extends Component {
 			
 			<OverlayTrigger key={this.props.id} placement='top' className='item'
 				            overlay={<Tooltip id={this.props.id}>{attributes}</Tooltip>}>
-				<div className={itemClassName} onClick={(e) => this.handleEquip(this.props.id)}>
+				<div className={itemClassName} onClick={(e) => this.handleEquip()}>
 					{this.props.attri.name}
 				</div>
 			</OverlayTrigger>

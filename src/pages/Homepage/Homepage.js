@@ -39,7 +39,7 @@ class Homepage extends Component {
 				<div className='content-paragraph'>
 					<RPGLogo className="in-paragraph-logo rpglogo"/>
 					<p className="paragraph">
-						You can try out the text based role playing game where you can explore the dungeon and kill monsters. You will need to create an account to play. This website uses Firebase as backend for data retrieval and authentication. <spam className='highlight'>(Under construction)</spam>
+						You can try out the text based role playing game where you can explore the dungeon and kill monsters. You will need to create an account to play. This website uses Firebase as backend for data retrieval and authentication. <spam className='highlight'>(Still improving)</spam>
 					</p>
 				</div>
 				<br className='breakline'/>

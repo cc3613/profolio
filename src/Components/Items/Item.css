@@ -1,0 +1,21 @@
+.item {
+	word-wrap: break-word;
+}
+
+.aux {
+	display: inline-block;
+	height: 100%;
+	width: 100px;
+	border: 1px solid;
+	border-radius: 5px;
+	margin: 2px 2px 2px 2px;
+	text-align: center;
+	top: 50%;
+	white-space: nowrap;
+	overflow-x: scroll;
+}
+
+.equip {
+	border: 2px solid #267f0b;
+	font-weight: bold;
+}

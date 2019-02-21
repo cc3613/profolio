@@ -1,6 +1,6 @@
 .homepage-logo {
 	display: block;
-    width: 25%;
+    /*width: 25%;*/
     height: 25%;
     margin-right: auto;
     margin-left: auto;
@@ -12,7 +12,8 @@
 }
 
 .in-paragraph-logo {
-	width: 50%;
+	/*height: auto;*/
+	/*width: auto;*/
 	margin-left: 0;
 	display: block;
 }
@@ -58,4 +59,9 @@
     width: 100%;
     border-bottom: 1px dashed black;
     height: 5px;
+}
+
+.highlight {
+	color: red;
+	font-weight: bold;
 }

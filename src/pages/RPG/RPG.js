@@ -1,16 +1,248 @@
 import React, {Component} from 'react';
+import axios from 'axios';
 
+import {Button} from 'react-bootstrap';
+
+import {config} from '../../Components/Firebase/Firebase';
+import Msg from '../../Components/DeathMsg/DeathMsg';
+// import WinMsg from '../../Components/'
+import ItemDisplay from '../../Components/Items/ItemDisplay';
+// import CreditCardInfo from '../../Components/CreditCardInfo/CreditCardInfo';
+import {HeroCharacter, EnemyCharacter} from '../../Components/Character/Character';
+import Store from '../../Components/Store/Store';
+
+import './RPG.css';
 
 class RPG extends Component {
+
+	constructor(props) {
+		super(props);
+		this.state = {
+			hero: {},
+			enemy: {},
+			exp_chart: {},
+			next_level: 0,
+			max_hp: 25,
+			max_mp: 10,
+			gold: 0,
+			death: false,
+			win : false,
+			store: false,
+			items: {},
+			item_bought: {},
+			}
+		}
+
+	componentDidMount() {
+		axios.get(config.databaseURL + '/hero.json')
+		     .then(res => this.setState({hero: res.data.default, max_hp: res.data.default.hp, max_mp: res.data.default.mp}))
+		     .catch(error => console.log(error));
+
+	    this.callNextMonster()
+            .then(data => this.setState({enemy: data.data}));
+
+        axios.get(config.databaseURL + '/exp_chart.json')
+             .then(res => this.setState({exp_chart: res.data}))
+             .catch(error => console.log(error));
+
+        axios.get(config.databaseURL + '/items.json')
+             .then(res => this.setState({items: res.data}))
+             .catch(error => console.log(error));
+	}
+
+	getRandomInt(max) {
+		return Math.floor(Math.random() * Math.floor(max));
+	}
+
+	callNextMonster() {
+		let heroLevel = this.state.hero.level;
+		let monsters = [];
+		if (heroLevel < 5) {
+			monsters = ['hobbit', 'spiderpig', 'big_monster']
+		} else if (heroLevel < 10) {
+			monsters = ['sunknight', 'charmander', 'big_monster']
+		} else if (heroLevel < 15) {
+			monsters = ['sunknight', 'charmander', 'mikewazowski']
+		} else if (heroLevel <= 20) {
+			monsters = ['sunknight', 'charmander', 'mikewazowski', 'dragon']
+		} else {
+			monsters = ['hobbit', 'spiderpig', 'big_monster']
+		}
+
+		let random_monster = monsters[this.getRandomInt(monsters.length)];
+		return axios.get(config.databaseURL + '/enemies/' + random_monster + '.json')
+	}
+
+	calculateUntilNextExp(level, exp) {
+		let until_next_level = this.parseNextLevelExp(level) - exp;
+		return until_next_level
+	}
+
+	parseNextLevelExp(level) {
+		let exp = this.state.exp_chart[level+1];
+		return exp
+	}
+
+	getLevelAttributes(level) {
+		return axios.get(config.databaseURL + '/hero/level_attributes.json')
+	}
+
+	handleFight(attributes, next_level_exp) {
+		let finalBoss = 'Dragon';
+		let hero = attributes.hero;
+		let enemy = attributes.enemy;
+		let hero_atk_val = Math.max(1, hero.atk - enemy.def);
+		let enemy_atk_val = Math.max(1, enemy.atk - hero.def);
+		let fight_end = false;
+		let dead = false;
+		let win = false;
+		
+		while (fight_end === false) {
+			if (hero.spe >= enemy.spe) {
+				enemy.hp -= hero_atk_val;
+				if (enemy.hp <= 0) {
+					fight_end = true;
+					if (enemy.name === finalBoss) {
+						win = true;
+					}
+				} else {
+					hero.hp -= enemy_atk_val;
+					if (hero.hp <= 0) {
+						fight_end = true;
+						dead = true;
+					}
+				}
+			} else {
+				hero.hp -= enemy_atk_val;
+				if (hero.hp <= 0) {
+					fight_end = true;
+					dead = true;
+				} else {
+					enemy.hp -= hero_atk_val;
+					if (enemy.hp <= 0) {
+						fight_end = true;
+						if (enemy.name === finalBoss) {
+							win = true;
+						}
+					}
+				}
+			}
+			
+		}
+
+		if (hero.level < 20) {
+			hero.exp += enemy.exp;
+
+			if (hero.exp >= next_level_exp) {
+				hero.level += 1;
+				this.getLevelAttributes(hero.level)
+				    .then(res => {
+			     		let new_level_hero = res.data[hero.level];
+
+				     	hero.atk += new_level_hero.atk;
+				     	hero.def += new_level_hero.def;
+				     	hero.dex += new_level_hero.dex;
+				     	hero.hp += new_level_hero.hp;
+				     	hero.int += new_level_hero.int;
+				     	hero.mp += new_level_hero.mp;
+				     	hero.spe += new_level_hero.spe;
+				     	this.setState({max_hp: new_level_hero.default_hp, max_mp: new_level_hero.default_mp})
+			     });
+			}
+		} else {
+			hero.exp = 'MAX'
+		}
+		let gold = this.state.gold
+		gold += enemy.gold
+
+		this.callNextMonster()
+            .then(data => this.setState({enemy: data.data}));
+		this.setState({hero: hero,
+					   enemy: enemy,
+					   gold: gold});
+
+		if (dead === true) {
+			this.setState({death: true});
+		} else if (win === true) {
+			this.setState({win: true});
+		}
+	}
+
+	resetHpMp = () => {
+		let HeroStatus = JSON.parse(JSON.stringify(this.state.hero));
+		HeroStatus.hp = this.state.max_hp;
+		HeroStatus.mp = this.state.max_mp;
+		this.setState({hero: HeroStatus});
+	}
+
+	handleModalClose = (e) => {
+		this.setState({death: false, win: false, item_bought: {}});
+		axios.get(config.databaseURL + '/hero.json')
+		     .then(res => this.setState({hero: res.data.default, max_hp: res.data.default.hp, max_mp: res.data.default.mp}))
+		     .catch(error => console.log(error));
+	}
+
+	showCheat = () => {
+		this.setState({cheat: true});
+	}
+
+	handleCloseModal = () => {
+		this.setState({cheat: false});
+	}
+
+	handleItemEquip = (e) => {
+		let attributes = ['atk', 'def', 'spe', 'dex', 'int', 'mp', 'hp'];
+		let newState = this.state;
+		newState.items[e].equip = !newState.items[e].equip;
+		if (newState.items[e].equip) {
+			for (let i = 0; i < attributes.length; i ++) {
+				let attribute = attributes[i];
+				newState.hero[attribute] += newState.items[e][attribute] || 0;
+			} 
+		} else {
+			for (let i = 0; i < attributes.length; i ++) {
+				let attribute = attributes[i];
+				newState.hero[attribute] -= newState.items[e][attribute] || 0;
+			}
+		}
+		this.setState(newState);
+	}
+
+	handleOpenStore = () => {
+		this.setState({store: true});
+	}
+
+	handleStoreClose = () => {
+		this.setState({store: false});
+	}
+
 	render () {
+		const until_next_level = this.calculateUntilNextExp(this.state.hero.level, this.state.hero.exp);
 		return (
 			<div>
 				<div>
-					This is RPG
-				</div>
-				
-				<div>
-					So fun!!!!
+					{/* <CreditCardInfo show={this.state.cheat} closeModal={this.handleCloseModal}/> */}
+					<Msg show={this.state.win} onClose={this.handleModalClose} title="You Win!!">You beat the dragon! Congrats! You just wasted 5 minutes playing this crappy game!</Msg>
+					<Msg show={this.state.death} onClose={this.handleModalClose} title="You Died!!">You died. There are only two buttons to press. Come on, man!</Msg>
+					
+					<div className='character-block'>
+						<HeroCharacter props={this.state.hero} until_next_level={until_next_level} gold={this.state.gold}/>
+						<EnemyCharacter props={this.state.enemy}/>
+					</div>
+					<Store show={this.state.store} onClose={this.handleStoreClose} items={this.state.items} goback={this.handleStoreClose}/>
+					
+					<hr></hr>
+					<h1>Items</h1>
+					<div className='item-block'>
+						<ItemDisplay items={this.state.item_bought} selected={this.handleItemEquip}/>
+					</div>
+					
+					<div className='action-buttons'>
+						<Button variant="outline-danger" size="lg" onClick= {() => this.handleFight(this.state, this.state.exp_chart[this.state.hero.level + 1])}>Fight!</Button>
+						<Button onClick = {this.resetHpMp}>Rest</Button>
+						<Button onClick = {this.handleOpenStore}>Visit Store</Button>
+						{/* <Button onClick = {this.showCheat}>Wanna be super duper strong? Click here!</Button> */}
+					</div>
 				</div>
 			</div>
 		);

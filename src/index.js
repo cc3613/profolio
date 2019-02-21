@@ -1,12 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {createStore, applyMiddleware, compose} from 'redux';
+import {createStore, applyMiddleware} from 'redux';
 import {Provider} from 'react-redux';
 import thunk from 'redux-thunk';
 import {BrowserRouter} from 'react-router-dom';
 
 import getRoutes from './routes';
 import rootReducer from './reducer';
+
+import Firebase, { FirebaseContext } from './Components/Firebase';
 
 
 import './index.css';
@@ -22,11 +24,13 @@ const store = createStore(
 	)
 
 ReactDOM.render(
-	<Provider stpre={store}>
-		<BrowserRouter>
-			{getRoutes(store)}
-		</BrowserRouter>
-	</Provider>,
+	<FirebaseContext.Provider value={new Firebase()}>
+		<Provider store={store}>
+			<BrowserRouter>
+				{getRoutes(store)}
+			</BrowserRouter>
+		</Provider>
+	 </FirebaseContext.Provider>,
 	document.getElementById('root')
 );
 

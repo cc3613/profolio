@@ -1,0 +1,42 @@
+.company {
+	font-weight: bold;
+	font-size: 18px;
+}
+
+.personal-info {
+	text-align: center;
+	margin-top: 10px;
+
+}
+
+.location {
+	font-style: italic;
+	font-weight: bold;
+}
+
+.duration {
+	font-style: italic;
+	font-weight: bold;
+}
+
+.job-title {
+	font-weight: bold;
+
+
+}
+
+.full-name {
+	font-size: 24px;
+	font-weight: bold;
+	text-align: center;
+	padding-top: 10px;
+}
+
+.section {
+	margin: 0 0 5px 5px;
+}
+
+.section-title {
+	margin-top: 20px;
+	margin-bottom: 20px;
+}

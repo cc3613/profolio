@@ -1,0 +1,13 @@
+.logo {
+	max-height: 200%;
+	max-width: 100%;
+	margin-right: auto;
+    margin-left: auto;
+    display: block;
+}
+
+.nickelback {
+	text-align: center;
+	font-style: italic;
+	margin-top: 100px;
+}

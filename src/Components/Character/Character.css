@@ -1,0 +1,16 @@
+.character {
+    /*display: inline-block;*/
+    border-style: solid;
+    border-radius: 10px;
+    width: 45%;
+    height: 75%;
+    margin: 0px 0px 10px 10px;
+}
+
+.hero {
+	float:left;
+}
+
+.enemy {
+	float: right;
+}

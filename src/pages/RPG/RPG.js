@@ -5,9 +5,7 @@ import {Button} from 'react-bootstrap';
 
 import {config} from '../../Components/Firebase/Firebase';
 import Msg from '../../Components/DeathMsg/DeathMsg';
-// import WinMsg from '../../Components/'
 import ItemDisplay from '../../Components/Items/ItemDisplay';
-// import CreditCardInfo from '../../Components/CreditCardInfo/CreditCardInfo';
 import {HeroCharacter, EnemyCharacter} from '../../Components/Character/Character';
 import Store from '../../Components/Store/Store';
 
@@ -24,7 +22,7 @@ class RPG extends Component {
 			next_level: 0,
 			max_hp: 25,
 			max_mp: 10,
-			gold: 0,
+			gold: 50,
 			death: false,
 			win : false,
 			store: false,
@@ -34,6 +32,7 @@ class RPG extends Component {
 		}
 
 	componentDidMount() {
+		// get all metadata here. And call a monster
 		axios.get(config.databaseURL + '/hero.json')
 		     .then(res => this.setState({hero: res.data.default, max_hp: res.data.default.hp, max_mp: res.data.default.mp}))
 		     .catch(error => console.log(error));
@@ -55,18 +54,19 @@ class RPG extends Component {
 	}
 
 	callNextMonster() {
+		// check hero's level and call corresponding monsters
 		let heroLevel = this.state.hero.level;
 		let monsters = [];
 		if (heroLevel < 5) {
-			monsters = ['hobbit', 'spiderpig', 'big_monster']
+			monsters = ['hobbit', 'spiderpig']
 		} else if (heroLevel < 10) {
-			monsters = ['sunknight', 'charmander', 'big_monster']
+			monsters = ['charmander', 'big_monster']
 		} else if (heroLevel < 15) {
 			monsters = ['sunknight', 'charmander', 'mikewazowski']
 		} else if (heroLevel <= 20) {
 			monsters = ['sunknight', 'charmander', 'mikewazowski', 'dragon']
 		} else {
-			monsters = ['hobbit', 'spiderpig', 'big_monster']
+			monsters = ['hobbit', 'spiderpig']
 		}
 
 		let random_monster = monsters[this.getRandomInt(monsters.length)];
@@ -88,6 +88,8 @@ class RPG extends Component {
 	}
 
 	handleFight(attributes, next_level_exp) {
+		// fight until someone dies. Level up when exp exceeds current level
+		// reset if win or dead
 		let finalBoss = 'Dragon';
 		let hero = attributes.hero;
 		let enemy = attributes.enemy;
@@ -176,33 +178,31 @@ class RPG extends Component {
 	}
 
 	handleModalClose = (e) => {
-		this.setState({death: false, win: false, item_bought: {}});
+		// This is pretty much a reload. Reset all necessary variables and states. Reload necessary data from db as well.
+		this.setState({death: false, win: false, item_bought: {}, gold: 50});
 		axios.get(config.databaseURL + '/hero.json')
 		     .then(res => this.setState({hero: res.data.default, max_hp: res.data.default.hp, max_mp: res.data.default.mp}))
 		     .catch(error => console.log(error));
-	}
-
-	showCheat = () => {
-		this.setState({cheat: true});
-	}
-
-	handleCloseModal = () => {
-		this.setState({cheat: false});
+	    axios.get(config.databaseURL + '/items.json')
+             .then(res => this.setState({items: res.data}))
+             .catch(error => console.log(error));
+        this.callNextMonster()
+            .then(data => this.setState({enemy: data.data}));
 	}
 
 	handleItemEquip = (e) => {
 		let attributes = ['atk', 'def', 'spe', 'dex', 'int', 'mp', 'hp'];
 		let newState = this.state;
-		newState.items[e].equip = !newState.items[e].equip;
-		if (newState.items[e].equip) {
+		newState.item_bought[e].equip = !newState.item_bought[e].equip;
+		if (newState.item_bought[e].equip) {
 			for (let i = 0; i < attributes.length; i ++) {
 				let attribute = attributes[i];
-				newState.hero[attribute] += newState.items[e][attribute] || 0;
+				newState.hero[attribute] += newState.item_bought[e][attribute] || 0;
 			} 
 		} else {
 			for (let i = 0; i < attributes.length; i ++) {
 				let attribute = attributes[i];
-				newState.hero[attribute] -= newState.items[e][attribute] || 0;
+				newState.hero[attribute] -= newState.item_bought[e][attribute] || 0;
 			}
 		}
 		this.setState(newState);
@@ -216,12 +216,26 @@ class RPG extends Component {
 		this.setState({store: false});
 	}
 
+	handleTransaction = (e) => {
+		let gold = this.state.gold;
+		gold -= e.goldNeeded;
+		let itemsBought = this.state.item_bought;
+		let items = this.state.items;
+		for (let i=0; i< e.itemsSelected.length; i++) {
+			itemsBought[e.itemsSelected[i]] = this.state.items[e.itemsSelected[i]];
+			delete items[e.itemsSelected[i]];
+		}
+
+		this.setState({'gold': gold, item_bought: itemsBought, items: items});
+		this.handleStoreClose()
+
+	}
+
 	render () {
 		const until_next_level = this.calculateUntilNextExp(this.state.hero.level, this.state.hero.exp);
 		return (
 			<div>
 				<div>
-					{/* <CreditCardInfo show={this.state.cheat} closeModal={this.handleCloseModal}/> */}
 					<Msg show={this.state.win} onClose={this.handleModalClose} title="You Win!!">You beat the dragon! Congrats! You just wasted 5 minutes playing this crappy game!</Msg>
 					<Msg show={this.state.death} onClose={this.handleModalClose} title="You Died!!">You died. There are only two buttons to press. Come on, man!</Msg>
 					
@@ -229,7 +243,8 @@ class RPG extends Component {
 						<HeroCharacter props={this.state.hero} until_next_level={until_next_level} gold={this.state.gold}/>
 						<EnemyCharacter props={this.state.enemy}/>
 					</div>
-					<Store show={this.state.store} onClose={this.handleStoreClose} items={this.state.items} goback={this.handleStoreClose}/>
+					<Store show={this.state.store} onClose={this.handleStoreClose} items={this.state.items} goback={this.handleStoreClose} 
+						   gold={this.state.gold} transaction={this.handleTransaction}/>
 					
 					<hr></hr>
 					<h1>Items</h1>
@@ -241,7 +256,6 @@ class RPG extends Component {
 						<Button variant="outline-danger" size="lg" onClick= {() => this.handleFight(this.state, this.state.exp_chart[this.state.hero.level + 1])}>Fight!</Button>
 						<Button onClick = {this.resetHpMp}>Rest</Button>
 						<Button onClick = {this.handleOpenStore}>Visit Store</Button>
-						{/* <Button onClick = {this.showCheat}>Wanna be super duper strong? Click here!</Button> */}
 					</div>
 				</div>
 			</div>
